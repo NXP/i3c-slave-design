@@ -13,14 +13,17 @@ Highly configurable using parameters, and contains:
 - Full APB memory mapped registers for processor based systems.
 - Adjustable FIFO depth for each direction
 - Autonomous model for state machine ASICs.
-- Documentation including programmer’s model, micro-architecture spec, basic I3C spec.
+- Documentation including programmerâ€™s model, micro-architecture spec, basic I3C spec.
 - Simple Test vectors for verification.
 
 Free version does not include HDR-DDR, HDR-Ternary, Time-control, nor Master support.
 
 # Requires a confidentiality agreement for non-MIPI-members
 So, cannot be BSD licensed. License agreement text for both MIPI members and non-members in this directory.
+
 Available from NXP for download if license is acceptable: http://www.nxp.com/webapp/software-center/library.jsp#/home/query/MIPI%20I3C%20Slave%20IP%20for%20MIPI/~filter~/popularity/0
+
+Commercial licensed versions available through Silvaco: http://www.silvaco.com/products/IP/i3c.html
 
 ---
 Copyright (c) 2015-2017 NXP Semiconductors.
