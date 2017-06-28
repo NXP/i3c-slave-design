@@ -1,6 +1,7 @@
 # MIPI I3C Slave
 
 An NXP Free license MIPI I3C Slave implemented in Verilog for use in FPGAs and Silicon parts.
+-- A new version will be available this week. This has some fixes and some capabilities now approved by MIPI SWG
 
 # Not available as BSD (open source) due to MIPI confidentiality - see below for details
 
