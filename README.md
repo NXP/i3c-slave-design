@@ -2,31 +2,27 @@
 
 An NXP Free license MIPI I3C Slave implemented in Verilog for use in FPGAs and Silicon parts.
 
--- Version 1.0.8_a.0.3 
+-- Version tag 1.0.13_a3
 
-# Not available as BSD (open source) due to MIPI confidentiality - see below for details
+# BSD Licemsed RTL - see README for exact text
 
 Highly configurable using parameters, and contains:
 
-- I3C SDR
+- Support for I3C Basic v1.0 as available on MIPI Website for download (member or not)
+- I3C SDR protocol
 - All required CCCs (builtin commands) plus some optional ones.
 - IBI (in band interrupt) including optional IBI data byte.
 - Support for I2C with a static address.
-- Full APB memory mapped registers for processor based systems.
-- Adjustable FIFO depth for each direction
-- Autonomous model for state machine ASICs.
+- Two different integrations depending on system
+  - Full APB memory mapped registers for processor based systems.
+    - Adjustable FIFO depth for each direction
+  - Autonomous model for state machine ASICs.
+    - Supports auto-register creation and system side control
 - Documentation including programmer’s model, micro-architecture spec, basic I3C spec.
-- Simple Test vectors for verification.
 
 Free version does not include HDR-DDR, HDR-Ternary, Time-control, nor Master support.
-
-# Requires a confidentiality agreement for non-MIPI-members
-So, cannot be BSD licensed. License agreement text for both MIPI members and non-members in this directory.
-
-Available from NXP for download if license is acceptable: http://www.nxp.com/webapp/software-center/library.jsp#/home/query/MIPI%20I3C%20Slave%20IP%20for%20MIPI/~filter~/popularity/0
-
-Commercial licensed versions available through Silvaco: http://www.silvaco.com/products/IP/i3c.html
+Full version of Slave and Master available for licensing from Silvaco
+Support contract of free Slave available from Silvaco
 
 ---
-Copyright (c) 2015-2017 NXP Semiconductors.
-
+Copyright (c) 2015-2018 NXP Semiconductors.
