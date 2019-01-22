@@ -4,7 +4,7 @@ An NXP Free license MIPI I3C Slave implemented in Verilog for use in FPGAs and S
 
 -- Version tag 1.0.13_a3
 
-# BSD Licemsed RTL - see README for exact text
+# BSD Licensed RTL - see README for exact text
 
 Highly configurable using parameters, and contains:
 
@@ -25,4 +25,4 @@ Full version of Slave and Master available for licensing from Silvaco
 Support contract of free Slave available from Silvaco
 
 ---
-Copyright (c) 2015-2018 NXP Semiconductors.
+Copyright (c) 2015-2019 NXP Semiconductors.
