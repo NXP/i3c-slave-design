@@ -2,7 +2,7 @@
 
 An NXP Free license MIPI I3C Slave implemented in Verilog for use in FPGAs and Silicon parts.
 
--- Version tag 1.0.13_a3
+-- Version tag 1.1.11 (Early Access release)
 
 # BSD Licensed RTL - see README for exact text
 
@@ -13,6 +13,7 @@ Highly configurable using parameters, and contains:
 - All required CCCs (builtin commands) plus some optional ones.
 - IBI (in band interrupt) including optional IBI data byte.
 - Support for I2C with a static address.
+- Add SlaveReset
 - Two different integrations depending on system
   - Full APB memory mapped registers for processor based systems.
     - Adjustable FIFO depth for each direction
