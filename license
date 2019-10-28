@@ -1,7 +1,7 @@
 ***************************************
 See README1ST.pdf for important details
 ***************************************
-Copyright (C) 2015-2018, NXP B.V.
+Copyright (C) 2015-2019, NXP B.V.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without 
@@ -45,4 +45,4 @@ Note on terms used above:
 3. Clause 2 allows for such notice on a Web page or other 
    electronic form not part of a distribution.
 The original BSD source is available from:
-  https://github.com/NXPmicro/i3c-slave-design
+  https://github.com/NXP/i3c-slave-design
