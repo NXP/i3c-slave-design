@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_sdr_slave_engine.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Fri Oct 25 07:30:25 2019 $
-//  Revision        : $Revision: 1.73 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Wed Dec 11 18:20:39 2019 $
+//  Revision        : $Revision: 1.75.1.1 $
 //
 //  IP Name         : i3c_sdr_slave_engine 
 //  Description     : MIPI I3C and I2C Slave processing main component
@@ -778,7 +778,9 @@ module i3c_sdr_slave_engine #(
         in_i3c_msg <= 1'b0;
 
   generate 
-  //FREE_VERSION_CUT - remove extended Map and extended i2c from free version
+  if (ENA_MAPPED[`MAP_ENA_b]) begin : match_mapped
+    //FREE_VERSION_CUT - remove extended Map and extended i2c from free version
+  end else 
   begin
     assign map_da_match  = 1'b0;
     assign map_sa_match  = 1'b0;
@@ -796,7 +798,9 @@ module i3c_sdr_slave_engine #(
     assign raw_dasa_ena  = 1'b0;
   end
 
-  //FREE_VERSION_CUT - remove i2c device ID
+  if (|MAP_I2CID) begin : i2c_dev_id
+    //FREE_VERSION_CUT - remove i2c device ID
+  end else 
   begin
     assign dev_spc        = 1'b0;
     assign spc_data_valid = 1'b0;
@@ -845,7 +849,7 @@ module i3c_sdr_slave_engine #(
   wire   our_ready      = ccc_handled ? is_our_ccc : 
                                         (was_read ? is_tb_val : fb_data_use);
   wire   daa_7e         = (ccc_byte[7:1]==7'h7E);
-  assign ack_ok         = in_daa_mode ? (was_read&daa_7e&~dyn_addr[0]) : // check for S4
+  assign ack_ok         = in_daa_mode ? (was_read&daa_7e&(~dyn_addr[0] | daa_act_ok)) : // check for S4
                           our_data ? our_ready : 
                           ((matched_7e & ~was_read) |
                            (matched_p2p & is_dasa)); // point to point

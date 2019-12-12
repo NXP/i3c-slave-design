@@ -52,7 +52,7 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_autonomous_reg.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
+//  Tag             : 1.1.11.a.1.0
 //  Date            : $Date: Thu Sep 12 16:42:33 2019 $
 //  Revision        : $Revision: 1.62 $
 //

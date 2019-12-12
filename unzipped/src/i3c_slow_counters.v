@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_slow_counters.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Wed Jul 31 16:20:57 2019 $
-//  Revision        : $Revision: 1.44 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Wed Nov 13 19:04:07 2019 $
+//  Revision        : $Revision: 1.45 $
 //
 //  IP Name         : i3c_slow_counters 
 //  Description     : MIPI I3C counters for timing for Slave for both 
@@ -286,16 +286,19 @@ module i3c_slow_counters #(
       if (~request_start)
         hj_cnt     <= 2'd0;             // condition changed, reset cnt
       else if (is_1us & (mid_cnt==LOAD_100)) begin
+        // we only count 200us once; after that we use hj_done so like IBI
         if (hj_cnt != 2'd2) begin
           hj_cnt   <= hj_cnt + 2'd1;
-          if (hj_cnt[0])                // Done once we have started
+          if (hj_cnt[0]) begin          // Done once we have started
             hj_done  <= 1'b1;           // one and done
+            hj_cnt   <= 2'd0;           // not needed, done does it all
+          end
         end
       end
     end
-  assign is_hj = run_hotjoin & ((hj_cnt == 2'd2) | (hj_done & is_1us));
+  assign is_hj = run_hotjoin & (hj_done & is_1us);
 
   // hold engine is because HotJoin means bus state unknown
-  assign hold_engine = run_hotjoin & ~hj_done & (hj_cnt!=2'd2);
+  assign hold_engine = run_hotjoin & ~hj_done;
 
 endmodule

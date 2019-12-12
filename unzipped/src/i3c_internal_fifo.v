@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_internal_fifo.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Wed Jun 12 23:47:03 2019 $
-//  Revision        : $Revision: 1.61 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Thu Nov 14 12:28:26 2019 $
+//  Revision        : $Revision: 1.62 $
 //
 //  IP Name         : i3c_internal_fifo 
 //  Description     : MIPI I3C optional FIFO when enabled
@@ -141,11 +141,11 @@ module i3c_internal_tb_fifo #(
   assign reset_flush_n = RSTn & (~tb_flush | scan_no_rst);
 
   // tobus means we write from CLK and we read from SCL
-  i3c_internal_fifo_write #(BITS) tb_wr_fifo(.RSTn(reset_flush_n), .WCLK(CLK), 
+  i3c_internal_fifo_write #(.BITS(BITS)) tb_wr_fifo(.RSTn(reset_flush_n), .WCLK(CLK), 
                                      .write_one(write_one), .wclk_rgray(wclk_rgray),
                                      .write_full(write_full), .export_wgray(export_wgray), 
                                      .write_idx(write_idx));
-  i3c_internal_fifo_read #(BITS)  tb_rd_fifo(.RSTn(reset_flush_n), .RCLK(SCL), 
+  i3c_internal_fifo_read #(.BITS(BITS)) tb_rd_fifo(.RSTn(reset_flush_n), .RCLK(SCL), 
                                      .read_one(tb_datab_ack), .rclk_wgray(rclk_wgray), 
                                      .read_empty(read_empty), .export_rgray(export_rgray), 
                                      .read_idx(read_idx), .next_read_idx(hold_next_idx));
@@ -270,11 +270,11 @@ module i3c_internal_fb_fifo #(
   assign reset_flush_n = RSTn & (~fb_flush | scan_no_rst);
 
   // tobus means we write from CLK and we read from SCL
-  i3c_internal_fifo_write #(BITS) fb_wr_fifo(.RSTn(reset_flush_n), .WCLK(SCL),
+  i3c_internal_fifo_write #(.BITS(BITS)) fb_wr_fifo(.RSTn(reset_flush_n), .WCLK(SCL),
                                      .write_one(fb_datab_done), .wclk_rgray(wclk_rgray),
                                      .write_full(write_full), .export_wgray(export_wgray), 
                                      .write_idx(write_idx));
-  i3c_internal_fifo_read #(BITS)  fb_rd_fifo(.RSTn(reset_flush_n), .RCLK(CLK), .read_one(notify_fb_ack), 
+  i3c_internal_fifo_read #(.BITS(BITS)) fb_rd_fifo(.RSTn(reset_flush_n), .RCLK(CLK), .read_one(notify_fb_ack), 
                                      .rclk_wgray(rclk_wgray), 
                                      .read_empty(read_empty), .export_rgray(export_rgray), 
                                      .read_idx(read_idx), .next_read_idx(unused2));

@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_slave_wrapper.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Fri Oct 25 07:56:03 2019 $
-//  Revision        : $Revision: 1.73 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Wed Dec 11 18:20:40 2019 $
+//  Revision        : $Revision: 1.75.1.1 $
 //
 //  IP Name         : i3c_slave_wrapper
 //  Description     : MIPI I3C Slave wrapper purely in SCL clock domain
@@ -123,7 +123,7 @@ module i3c_slave_wrapper #(
     parameter ENA_TIMEC       = 6'b000010,    // if reg, res, res, mode 1, mode 0, sync
     parameter TIMEC_FREQ_ACC  = {8'd24,8'd10},// freq=12MHz (12.0=24) with 1.0% accuracy
     parameter priv_sz         = PIN_MODEL[1] ? (ENA_HDR[0] ? 3 : 1) : 0,// wider if ext-pad+ddr
-    parameter [7:0] PID_CNT   = MAP_DA_AUTO[`MAPDA_DAA_PID_lb +: 5], // computed
+    parameter [7:0] PID_CNT   = MAP_DA_AUTO[`MAPDA_DAA_PID_lb+4:`MAPDA_DAA_PID_lb], // computed
     parameter SLV_DBG_MX      = 0       // debug observer
   )
   (
@@ -598,7 +598,7 @@ module i3c_slave_wrapper #(
     .daa_map_idx      (daa_map_idx),
     .map_da           (map_da),
     .map_chg          (raw_dasa_ena|raw_setaasa),
-    .set_da           (set_da),
+    .set_da           (set_da & ~raw_dasa_ena), // set unless map
     .new_da           (new_da),
     .set_aasa         (opt_setaasa),
     .old_sa           (opt_static_addr),
@@ -725,7 +725,7 @@ module i3c_slave_wrapper #(
   // -- Note that it uses the SDR engine to do a lot of its work
   // 
   generate if (ENA_HDR[`HDR_DDR_b]) begin : ddr_instance
-    i3c_hdr_ddr_slave #(PIN_MODEL)
+    i3c_hdr_ddr_slave #(.PIN_MODEL(PIN_MODEL))
       hdr_ddr
       (
       .clk_SCL_n        (clk_SCL_n), 
@@ -777,8 +777,6 @@ module i3c_slave_wrapper #(
     assign tb_urun     = stb_urun;
     assign tb_term     = stb_term;
     assign raw_hdr_newcmd = 0;
-    assign raw_hdr_cmd = 0;
-    assign raw_dasa_ena= 1'b0;
   end endgenerate
 
 endmodule

@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_daa_slave.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Thu Oct 24 08:54:28 2019 $
-//  Revision        : $Revision: 1.67 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Wed Dec 11 18:20:38 2019 $
+//  Revision        : $Revision: 1.72.1.1 $
 //
 //  IP Name         : i3c_daa_slave
 //  Description     : MIPI I3C Dynamic address (CCC) handling
@@ -116,7 +116,7 @@ module i3c_daa_slave #(
     parameter         MAP_DA_DAA= 0,    // if not MMR and PID/DCR !=0, is bit array      
     parameter         PIN_MODEL = `PINM_COMBO, // combinatorial pin use
     // one below is computed
-    parameter  [7:0]  PID_CNT = MAP_DA_AUTO[`MAPDA_DAA_PID_lb +: 5]
+    parameter  [7:0]  PID_CNT = MAP_DA_AUTO[`MAPDA_DAA_PID_lb+4:`MAPDA_DAA_PID_lb]
   )
   (
   // 1st Clock and Reset and pin in from outer parts
@@ -172,7 +172,6 @@ module i3c_daa_slave #(
 
 
   // output when contesting ENTDAA except if lost and while getting new DA
-  wire   daa_pariyt     = raw_map_daa ? parity_matched : map_parity;
   assign daa_inp_bit    = daa_acknack ? ~parity_matched : daa_out[id64_cnt[5:0]];
   assign daa_inp_drv    = daa_active & state_in_CCC[`CF_DAA_M] &
                             (id64_cnt[6] | daa_acknack);
@@ -184,7 +183,7 @@ module i3c_daa_slave #(
                           set_da | delay_i3c[1] | (set_aasa & |old_sa & ~i3c_addr[0]) |
                           raw_map_daa | map_chg;
 
-  generate if (ID_AS_REGS[`IDREGS_DAWR_b]) begin : chg_cause
+  generate if (ID_AS_REGS[`IDREGS_DAWR_b]) begin : set_chg_cause
     reg    [2:0] chg_cause; 
     assign dyn_chg_cause = chg_cause;
     always @ (posedge clk_SCL or negedge RSTn)
@@ -312,8 +311,10 @@ module i3c_daa_slave #(
   endgenerate 
 
   generate
-  //FREE_VERSION_CUT - remove extended MAP from free version
-    begin
+    genvar i;
+    if (ENA_MAPPED[`MAP_ENA_b] & MAP_DA_AUTO[`MAPDA_DAA_b]) begin : auto_daa
+      //FREE_VERSION_CUT - remove extended MAP from free version
+    end else begin
       // No auto DAA for map
       assign daa_out     = daa_out_0;
       assign daa_act_ok  = 1'b0;

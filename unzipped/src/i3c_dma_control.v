@@ -52,7 +52,7 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_dma_control.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
+//  Tag             : 1.1.11.a.1.0
 //  Date            : $Date: Wed Jun 12 23:47:03 2019 $
 //  Revision        : $Revision: 1.52 $
 //

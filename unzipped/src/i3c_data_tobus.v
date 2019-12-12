@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_data_tobus.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Wed Jun 12 23:47:02 2019 $
-//  Revision        : $Revision: 1.61 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Thu Nov 14 12:28:26 2019 $
+//  Revision        : $Revision: 1.62 $
 //
 //  IP Name         : i3c_data_tobus 
 //  Description     : MIPI I3C Master-Read outbound Data buffered/fifoed S->M)
@@ -262,7 +262,8 @@ module i3c_data_tobus #(
  //
  end else begin : tb_fifo_inst
   // instantiate FIFO, with correct size and optional holding
-  i3c_internal_tb_fifo #(ENA_TOBUS_FIFO, FIFO_TYPE[`FIFO_TBHOLD_b])
+  i3c_internal_tb_fifo #(.BITS(ENA_TOBUS_FIFO), 
+                         .USE_HOLDING(FIFO_TYPE[`FIFO_TBHOLD_b]))
     tb_fifo(.RSTn(RSTn), .CLK(CLK), .SCL(SCL), .SCL_n(SCL_n), 
             .avail_tb_ready(avail_tb_ready),
             .avail_tb_data(avail_tb_data), .avail_tb_ack(avail_tb_ack),

@@ -53,9 +53,9 @@
 //  File            : i3c_ccc_slave.v
 //  Organisation    : MCO
 //  Tag             : 1.0.2
-//  Tag             : 1.1.11
-//  Date            : $Date: Fri Aug 30 16:14:36 2019 $
-//  Revision        : $Revision: 1.62 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Wed Dec 11 18:20:40 2019 $
+//  Revision        : $Revision: 1.63.1.1 $
 //
 //  IP Name         : i3c_ccc_slave
 //  Description     : MIPI I3C Slave CCC handling (req and optional by param)
@@ -537,7 +537,9 @@ module i3c_ccc_slave #(
   endgenerate
 
   generate 
-  //FREE_VERSION_CUT - remove time-control from free version
+    if (|ENA_TIMEC) begin : xtime_ccc
+    //FREE_VERSION_CUT - remove time-control from free version
+    end else 
     begin
       assign xtime     = 32'd0;
       assign opt_TimeC = 3'b000;
@@ -597,7 +599,9 @@ module i3c_ccc_slave #(
   endgenerate
 
   generate
-  //FREE_VERSION_CUT - remove VGPIO from free version
+    if (ID_AS_REGS[`IDREGS_VGPIO_b]) begin : vgpio_ccc_supp
+      //FREE_VERSION_CUT - remove VGPIO from free version
+    end else 
     begin
       assign ccc_vgpio      = 8'h00;
       assign ccc_vgpio_done = 2'b00;

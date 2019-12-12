@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_data_frombus.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Wed Jun 12 23:47:02 2019 $
-//  Revision        : $Revision: 1.61 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Thu Nov 14 12:28:26 2019 $
+//  Revision        : $Revision: 1.62 $
 //
 //  IP Name         : i3c_data_frombus 
 //  Description     : MIPI I3C Master inbound Data buffered/fifoed (M->S)
@@ -288,7 +288,7 @@ module i3c_data_frombus #(
  //
  end else begin : fb_fifo_inst
   // instantiate FIFO
-  i3c_internal_fb_fifo #(ENA_FROMBUS_FIFO) 
+  i3c_internal_fb_fifo #(.BITS(ENA_FROMBUS_FIFO)) 
     fb_fifo(.RSTn(RSTn), .CLK(CLK), .SCL(SCL), .SCL_n(SCL_n), 
             .notify_fb_ready(notify_fb_ready), .notify_fb_data(notify_fb_data), 
             .notify_fb_ack(notify_fb_ack), .fb_flush(fb_flush), 

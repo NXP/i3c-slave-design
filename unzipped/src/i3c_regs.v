@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_regs.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Thu Oct 24 15:00:56 2019 $
-//  Revision        : $Revision: 1.78 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Wed Dec 11 18:20:38 2019 $
+//  Revision        : $Revision: 1.79.1.1 $
 //
 //  IP Name         : i3c_regs
 //  Description     : MIPI I3C Memory Mapped registers for local processor use
@@ -123,7 +123,7 @@ module i3c_regs #(
     parameter TIMEC_FREQ_ACC  = {8'd24,8'd10},// freq=12MHz (12.0=24) with 1.0% accuracy
     parameter BLOCK_ID        = 0,      // if not 0, returns an ID at FFC
     parameter ENA_MASTER      = 0,      // if 1, then we support master
-    parameter [7:0] PID_CNT   = MAP_DA_AUTO[`MAPDA_DAA_PID_lb +: 5] // computed
+    parameter [7:0] PID_CNT   = MAP_DA_AUTO[`MAPDA_DAA_PID_lb+4:`MAPDA_DAA_PID_lb] // computed
   )
   (
   input               PRESETn,          // reset from system
@@ -1016,18 +1016,7 @@ module i3c_regs #(
       end
       // now 10 bit static address for i2c
       if (ENA_MAPPED[`MAP_I2C_SA10_b]) begin : static_10b
-        reg           [2:0] map_10b; // for extra bits for index 1
-        assign SetSA10b = map_10b;
-        always @ (posedge PCLK or negedge PRESETn)
-          if (!PRESETn)
-            map_10b <= 3'd0;
-          else if (`D_RESET)
-            map_10b <= 3'd0;
-          else if (is_write & ma_dynaddr & (PWDATA[11:8]==1) &
-                       (PWDATA[31:16]==16'hA4D9))
-            map_10b <= PWDATA[12] ? PWDATA[15:13] : 3'd0;
-          else if (is_write & ma_mapctrln & (PADDR[4:2]==1))
-            map_10b <= PWDATA[8] ? PWDATA[11:9] : 3'd0;
+        //FREE_VERSION_CUT - remove extended MAP from free version
       end else begin
         assign SetSA10b = 3'd0;
       end
@@ -1051,10 +1040,7 @@ module i3c_regs #(
       wire [31:24] mdcr;
       wire       mdause;
       if (MAP_DA_AUTO[`MAPDA_DAA_MMR_b]) begin : daa_mrr_rd
-        assign mpid     = map_daa_pid[mapp +: PID_CNT]; // will use as much as needed
-        assign mdcr     = MAP_DA_AUTO[`MAPDA_DAA_DCR_b] ? 
-                                   map_daa_dcr[(mapr<<3) +: 8] : mpid[31:24];
-        assign mdause   = map_daa_use[mapr];
+        //FREE_VERSION_CUT - remove extended MAP from free version
       end else begin
         assign mpid     = 0; 
         assign mdcr     = 0;
@@ -1064,28 +1050,7 @@ module i3c_regs #(
       assign mapctrl_reg= {mdcr,mpid[23:14],mdause,mapns[1],
                            {3{mapr==4'd0}}&SetSA10b,mapns[0],maddr};
       if (MAP_DA_AUTO[`MAPDA_DAA_MMR_b]) begin : map_daa_mmr
-        reg  [MAP_CNT-1:0] map_daa_use_r;      // which MAP are auto-DAA
-        reg[(MAP_CNT*8)-1:0] map_daa_dcr_r;      // DCRs if MAP auto-DAA
-        reg[(MAP_CNT*PID_CNT)-1:0] map_daa_pid_r; // PID partials if MAP auto-DAA
-        for (i = 1; i <= MAP_CNT; i = i + 1) begin : map_writes_mmr
-          always @ (posedge PCLK or negedge PRESETn)
-            if (!PRESETn) begin
-              map_daa_use_r[i-1]                      <= 1'b0;
-              map_daa_dcr_r[((i-1)*8)+:8]             <= 1'b0;
-              map_daa_pid_r[((i-1)*PID_CNT)+:PID_CNT] <= 1'b0;
-            end else if (`D_RESET) begin
-              map_daa_use_r[i-1]                      <= 1'b0;
-              map_daa_dcr_r[((i-1)*8)+:8]             <= 1'b0;
-              map_daa_pid_r[((i-1)*PID_CNT)+:PID_CNT] <= 1'b0;
-            end else if (is_write & ma_mapctrln & (PADDR[4:2]==(i-1))) begin
-              map_daa_use_r[i-1]                      <= PWDATA[13];
-              map_daa_dcr_r[((i-1)*8)+:8]             <= PWDATA[31:24]; // whether used or not
-              map_daa_pid_r[((i-1)*PID_CNT)+:PID_CNT] <= PWDATA[14+:PID_CNT]; // "
-            end
-        end
-        assign map_daa_use = map_daa_use_r;
-        assign map_daa_dcr = map_daa_dcr_r;
-        assign map_daa_pid = map_daa_pid_r;
+        //FREE_VERSION_CUT - remove extended MAP from free version
       end else begin
         assign map_daa_use = 0;
         assign map_daa_dcr = 0;

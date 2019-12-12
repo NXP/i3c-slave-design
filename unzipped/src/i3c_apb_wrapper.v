@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_apb_wrapper.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Thu Oct 24 08:54:29 2019 $
-//  Revision        : $Revision: 1.73 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Wed Dec 11 18:20:40 2019 $
+//  Revision        : $Revision: 1.74.1.1 $
 //
 //  IP Name         : i3c_apb_wrapper 
 //  Description     : MIPI I3C Slave support with APB bus for MMRs
@@ -100,7 +100,7 @@ module i3c_apb_wrapper #(
     parameter  MAP_CNT        = 4'd1,   // number of extra DAs/SAs allowed
     parameter  MAP_I2CID      = 24'd0,  // !=0 if I2C extended with DevID
                // DA_AUTO: PID[pos:0],DCR, MMR, res  DAA, AASA,DASA,
-    parameter  MAP_DA_AUTO    = {5'd0,1'b0,1'b0,3'd0,1'b0,1'b0,1'b0},
+    parameter  MAP_DA_AUTO    = {5'd1,1'b0,1'b0,3'd0,1'b0,1'b0,1'b0},
     parameter  MAP_DA_DAA     = 0,      // if not MMR and PID/DCR !=0, is bit array      
     parameter ENA_IBI_MR_HJ   = 0,      // 0 if no events, else events as mask
     parameter  CLK_SLOW_BITS  = 6,      // number of bits needed for count for Bus Avail
@@ -229,7 +229,7 @@ module i3c_apb_wrapper #(
   input               scan_no_gates     // prevents arch clock gating
   );
   // below for optional MAP Auto DAA
-  localparam  [7:0]  PID_CNT = MAP_DA_AUTO[`MAPDA_DAA_PID_lb +: 5];
+  localparam   [7:0] PID_CNT = MAP_DA_AUTO[`MAPDA_DAA_PID_lb+4:`MAPDA_DAA_PID_lb];
 
   // bus special
   wire   wr_err;                        // set in reg interface

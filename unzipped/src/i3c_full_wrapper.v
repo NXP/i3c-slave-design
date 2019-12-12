@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_full_wrapper.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11
-//  Date            : $Date: Thu Oct 24 08:54:29 2019 $
-//  Revision        : $Revision: 1.72 $
+//  Tag             : 1.1.11.a.1.0
+//  Date            : $Date: Wed Dec 11 18:20:38 2019 $
+//  Revision        : $Revision: 1.76.1.1 $
 //
 //  IP Name         : i3c_full_wrapper 
 //  Description     : MIPI I3C Outer wrapper for Net based use, inc CDC
@@ -129,7 +129,7 @@ module i3c_full_wrapper #(
     parameter ENA_MASTER      = 0,      // 1 if using master
     parameter PIN_MODEL       = `PINM_COMBO, // combinatorial pin use
     parameter priv_sz         = PIN_MODEL[1] ? (ENA_HDR[0] ? 3 : 1) : 0,// wider if ext-pad+ddr
-    parameter [7:0] PID_CNT   = MAP_DA_AUTO[`MAPDA_DAA_PID_lb +: 5], // computed
+    parameter [7:0] PID_CNT   = MAP_DA_AUTO[`MAPDA_DAA_PID_lb+4:`MAPDA_DAA_PID_lb], // computed
     parameter FULL_DBG_MX     = 0       // debug observer
   )
   (
@@ -918,8 +918,8 @@ module i3c_full_wrapper #(
       assign map_rstdaa = 1'b0;
     end
 
-    if (MAP_DA_AUTO[`MAPDA_DASA_b]) begin : map_setdasa
-      SYNC_Pulse_S2C sync_setdasa(.SCL(clk_SCL), .CLK(PCLK), .RSTn(PRESETn), 
+    if (MAP_DA_AUTO[`MAPDA_DASA_b]|MAP_DA_AUTO[`MAPDA_DAA_b]) begin : map_da_ena
+      SYNC_Pulse_S2C sync_mapdaaena(.SCL(clk_SCL), .CLK(PCLK), .RSTn(PRESETn), 
                                   .local_set(raw_daa_ena), 
                                   .o_pulse(map_daa_ena));
     end else begin
@@ -1231,7 +1231,9 @@ module i3c_full_wrapper #(
                        MAXES>16'hFFFF ||
                        (~ENA_CCC_HANDLING[`ENCCC_MAXES_b]&|ALLMX) ||
                        (ENA_CCC_HANDLING[`ENCCC_MAXES_b]&
-                             (MAX_DS_WR>7||MAX_DS_RD>63||MAX_DS_RDTURN>=(1<<24)));
+                             (MAX_DS_WR>7||MAX_DS_RD>63||MAX_DS_RDTURN>=(1<<24))) ||
+                         // If v1.1 then SlaveReset is required (and GETCAPS)
+                       (ENA_CCC_HANDLING[`ENCCC_V11MIN]!=RSTACT_CONFIG[`RSTA_ENA_b]);
   wire [0:0] bad_ccc;
   assign bad_ccc[CCC_TST] = 1'b0;
   // time control - below async mode 0 if sync - we enforce for Slave
@@ -1280,5 +1282,20 @@ module i3c_full_wrapper #(
                        (&MAP_DA_AUTO[7:6]&(MAP_DA_AUTO[12:8]>10));
   wire [0:0] bad_map;
   assign bad_map[MAP_TST] = 1'b0;
+
+  //
+  // Special assertions to catch free version using params not supported
+  //
+  //FREE_VERSION_CUT - check for params not supported in free version
+  `ifndef IS_NOT_FREE
+   // assert on unsupported params. Need to check if complete list
+   localparam FREE_TST = |ENA_MAPPED[`MAP_VGPIO_b:`MAP_I2C_SA10_b] ||
+                         (|MAP_DA_AUTO[`MAPDA_DAA_DCR_b:`MAPDA_DASA_b]) ||
+                         (|ENA_HDR) || (|ENA_TIMEC));
+   //TODO: need DMA test since no DMA allowed
+   wire [0:0] not_in_free;
+   assign not_in_free[FREE_TST] = 1'b0;
+  `endif
+
 
 endmodule
