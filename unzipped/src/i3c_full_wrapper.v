@@ -53,8 +53,8 @@
 //  File            : i3c_full_wrapper.v
 //  Organisation    : MCO
 //  Tag             : 1.1.11.a.1.0
-//  Date            : $Date: Wed Dec 11 18:20:38 2019 $
-//  Revision        : $Revision: 1.76.1.1 $
+//  Date            : $Date: Thu Dec 12 11:05:03 2019 $
+//  Revision        : $Revision: 1.76.1.2 $
 //
 //  IP Name         : i3c_full_wrapper 
 //  Description     : MIPI I3C Outer wrapper for Net based use, inc CDC
@@ -1277,7 +1277,7 @@ module i3c_full_wrapper #(
                        (ENA_MAPPED[1] & ~|MAP_CNT) ||
                        (~ENA_MAPPED[0]&|MAP_DA_AUTO) ||
                        ((~MAP_DA_AUTO[2]|MAP_DA_AUTO[6])&|MAP_DA_DAA) ||
-                       (~MAP_DA_AUTO[2]&|MAP_DA_AUTO[12:6]) ||
+                       (~MAP_DA_AUTO[2]&|MAP_DA_AUTO[12:7]) ||
                        (MAP_DA_AUTO[6]&(MAP_DA_AUTO[12:8]>18)) ||
                        (&MAP_DA_AUTO[7:6]&(MAP_DA_AUTO[12:8]>10));
   wire [0:0] bad_map;
