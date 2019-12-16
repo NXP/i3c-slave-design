@@ -2,7 +2,7 @@
 
 An NXP Free license MIPI I3C Slave implemented in Verilog for use in FPGAs and Silicon parts.
 
--- Version tag 1.1.11.a.1.0 (Early Access release)
+-- Version tag 1.1.11.a.0.1 (Early Access release)
 
 # BSD Licensed RTL - see README for exact text
 
