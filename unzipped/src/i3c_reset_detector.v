@@ -52,7 +52,7 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_reset_detector.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11.a.1.0
+//  Tag             : 1.1.11.a.0.1
 //  Date            : $Date: Thu Sep 12 16:44:05 2019 $
 //  Revision        : $Revision: 1.14 $
 //

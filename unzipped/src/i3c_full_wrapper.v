@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_full_wrapper.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11.a.1.0
-//  Date            : $Date: Thu Dec 12 11:05:03 2019 $
-//  Revision        : $Revision: 1.76.1.2 $
+//  Tag             : 1.1.11.a.0.1
+//  Date            : $Date: Mon Dec 16 11:09:12 2019 $
+//  Revision        : $Revision: 1.76.1.3 $
 //
 //  IP Name         : i3c_full_wrapper 
 //  Description     : MIPI I3C Outer wrapper for Net based use, inc CDC
@@ -1275,9 +1275,9 @@ module i3c_full_wrapper #(
                          // next prevents 10b addr and VGPIO at same time
                        (ENA_MAPPED[`MAP_I2C_SA10_b] & ENA_MAPPED[`MAP_VGPIO_b]) ||
                        (ENA_MAPPED[1] & ~|MAP_CNT) ||
-                       (~ENA_MAPPED[0]&|MAP_DA_AUTO) ||
+                       (~ENA_MAPPED[0]&|MAP_DA_AUTO[12:9]) ||
                        ((~MAP_DA_AUTO[2]|MAP_DA_AUTO[6])&|MAP_DA_DAA) ||
-                       (~MAP_DA_AUTO[2]&|MAP_DA_AUTO[12:7]) ||
+                       (~MAP_DA_AUTO[2]&|MAP_DA_AUTO[12:9]) ||
                        (MAP_DA_AUTO[6]&(MAP_DA_AUTO[12:8]>18)) ||
                        (&MAP_DA_AUTO[7:6]&(MAP_DA_AUTO[12:8]>10));
   wire [0:0] bad_map;
@@ -1291,7 +1291,7 @@ module i3c_full_wrapper #(
    // assert on unsupported params. Need to check if complete list
    localparam FREE_TST = |ENA_MAPPED[`MAP_VGPIO_b:`MAP_I2C_SA10_b] ||
                          (|MAP_DA_AUTO[`MAPDA_DAA_DCR_b:`MAPDA_DASA_b]) ||
-                         (|ENA_HDR) || (|ENA_TIMEC));
+                         (|ENA_HDR) || (|ENA_TIMEC);
    //TODO: need DMA test since no DMA allowed
    wire [0:0] not_in_free;
    assign not_in_free[FREE_TST] = 1'b0;

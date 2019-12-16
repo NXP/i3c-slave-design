@@ -52,7 +52,7 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_internal_fifo.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11.a.1.0
+//  Tag             : 1.1.11.a.0.1
 //  Date            : $Date: Thu Nov 14 12:28:26 2019 $
 //  Revision        : $Revision: 1.62 $
 //
