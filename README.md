@@ -21,9 +21,8 @@ Highly configurable using parameters, and contains:
     - Supports auto-register creation and system side control
 - Documentation including programmer’s model, micro-architecture spec, basic I3C spec.
 
-Free version does not include HDR-DDR, HDR-Ternary, Time-control, nor Master support.
-Full version of Slave and Master available for licensing from Silvaco
-Support contract of free Slave available from Silvaco
+Free version does not include HDR-DDR, HDR-Ternary, Time-control, nor Master support. It also lacks some other advanced features including for i2c.
+Full version of Slave and Master available for licensing from Silvaco.
 
 ---
-Copyright (c) 2015-2019 NXP Semiconductors.
+Copyright (c) 2015-2020 NXP Semiconductors.
