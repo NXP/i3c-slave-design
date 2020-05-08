@@ -52,7 +52,7 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_auton_wrapper.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11.a.0.1
+//  Tag             : 1.1.11
 //  Date            : $Date: Wed Jun 12 23:47:02 2019 $
 //  Revision        : $Revision: 1.61 $
 //
@@ -279,6 +279,7 @@ module i3c_auton_wrapper #(
     .cf_IdRand        (cf_IdRand), 
     .cf_Partno        (cf_Partno), 
     .cf_IdVid         (cf_IdVid),
+    .cf_SlvNack       (1'b0),
     .cf_BAMatch       (8'd0),
     .cf_IdBcr         (cf_IdBcr), 
     .cf_IdDcr         (cf_IdDcr), 

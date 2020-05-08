@@ -52,9 +52,9 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_sdr_slave_engine.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11.a.0.1
-//  Date            : $Date: Wed Dec 11 18:20:39 2019 $
-//  Revision        : $Revision: 1.75.1.1 $
+//  Tag             : 1.1.11
+//  Date            : $Date: Tue Dec 10 18:34:24 2019 $
+//  Revision        : $Revision: 1.76 $
 //
 //  IP Name         : i3c_sdr_slave_engine 
 //  Description     : MIPI I3C and I2C Slave processing main component
@@ -420,6 +420,7 @@ module i3c_sdr_slave_engine #(
   wire     [7:0] spc_data;              // 8 bits of device ID if used
   reg      [7:0] in_ccc;                // tracks CCC as mode/state only
   reg      [1:0] ccc_supp;              // for signaling CCC to slave
+  reg            ccc_uh_r;              // registered once accepted
   wire           ccc_valid_dir;         // directed CCC direction is valid
   wire           next_int_ccc, next_bc_ccc, next_dc_ccc;
   reg            pass_ccc;
@@ -734,7 +735,7 @@ module i3c_sdr_slave_engine #(
   always @ (posedge clk_SCL_n or negedge RSTn) 
     if (!RSTn) 
       datab_done  <= 1'b0;              // i3c: set on 9th, i2c: set on 8th
-    else if (~|bit_cnt & (state == ST_WRITE) & (~in_ccc[0] | ccc_uh_mask)) 
+    else if (~|bit_cnt & (state == ST_WRITE) & (~in_ccc[0] | ccc_uh_r)) 
       datab_done  <= 1'b1;              // data done, for i3c parity can be error
     else 
       datab_done  <= 1'b0;              // 1 cycle pulse whether i2c or i3c
@@ -829,7 +830,7 @@ module i3c_sdr_slave_engine #(
   assign int_da_matched = is_da_matched & ~da_suppress;
   assign int_sa_matched = (state==ST_ACK_NACK) & ~is_i3c & ~cf_SlvNack &
                           ((map_sa_match&~dev_spc)|(opt_static_addr[0]&(work_datab[7:1]==opt_static_addr[7:1])));
-  assign matched_7e     = (work_datab[7:1]==7'h7E) & ~cf_SlvNack;
+  assign matched_7e     = (work_datab[7:1]==7'h7E); // not ~cf_SlvNack as 7E must be ACKed
   assign matched_p2p    = (work_datab[7:1]==7'h01);
   assign int_7e_matched = (state==ST_ACK_NACK) & matched_7e; // pulse
     // note on below: for SETGET types, ccc_get matches was_read
@@ -844,7 +845,8 @@ module i3c_sdr_slave_engine #(
   // a risk because it can go from empty to ~empty mid-cycle, so we reg
   reg    was_tb_val;
   wire   is_tb_val      = (tb_data_valid & was_tb_val) | dev_spc; 
-  wire   our_data       = is_da_matched | int_sa_matched | map_spc | dev_spc | vgpio_spc |
+  wire   valid_sa       = int_sa_matched & (~in_ccc[`CF_DIRECT] | is_dasa);
+  wire   our_data       = is_da_matched | valid_sa | map_spc | dev_spc | vgpio_spc |
                           (is_dasa & map_sa_match & MAP_DA_AUTO[`MAPDA_DASA_b]); // map auto
   wire   our_ready      = ccc_handled ? is_our_ccc : 
                                         (was_read ? is_tb_val : fb_data_use);
@@ -867,9 +869,11 @@ module i3c_sdr_slave_engine #(
   always @ (posedge clk_SCL_n or negedge RSTn) 
     if (!RSTn)
       spike_lock <= 1'b0;
-    else if ((state[2:0] == ST_A7_A0_RnW[2:0]) & (bit_cnt == 3'h0) &
-             (work_datab[7:1]==7'h7E))
+    else if (~spike_lock)
+      if ((state[2:0] == ST_A7_A0_RnW[2:0]) & (bit_cnt == 3'h0) & (work_datab[7:1]==7'h7E))
       spike_lock <= 1'b1;               // I3C, never allow spike filter
+      else if (is_i3c)
+        spike_lock <= 1'b1;               // if I3C DA valid, no spike
   assign i2c_spike_ok = ~spike_lock & ~i2c_hs_enabled;
 
   // the event_won reg allows us to handle IBI/MR/HJ during start
@@ -1020,7 +1024,7 @@ module i3c_sdr_slave_engine #(
       if (!ccc_reset_n)
         ddr_active_r <= 1'b0;
       else if ((in_ccc[`CF_DIRECT:0]==3'b001) & (state==ST_W9TH) &
-               (work_datab[7:3]==`CCC_ENTHDR_MSK) & ~work_datab[2:0] &
+               (work_datab[7:3]==`CCC_ENTHDR_MSK) & ~|work_datab[2:0] &
                (parity==pin_SDA_in))
         ddr_active_r <= 1'b1;           // DDR and parity good
     assign in_ddr = ddr_active_r;
@@ -1038,25 +1042,29 @@ module i3c_sdr_slave_engine #(
   //    tell app from broadcast, but they do not know if they will be 
   //    selected and so would have to prepare an answer???
   assign next_int_ccc = (in_ccc[`CF_DIRECT:0]==3'b001) & (state==ST_W9TH) & 
-                        (parity==SDA_r) & ~ccc_handling & ccc_uh_mask;
+                        (parity==SDA_r) & ~ccc_handling & ccc_uh_mask & ~cf_SlvNack;
   assign next_bc_ccc  = next_int_ccc & ~work_datab[7];
   assign next_dc_ccc  = ccc_supp[1] & int_da_matched & in_ccc[`CF_DIRECT];
   always @ (posedge clk_SCL_n or negedge RSTn) 
-    if (!RSTn)
+    if (!RSTn) begin
       ccc_supp    <= 2'b00;
-    else if (next_int_ccc) begin        // only if not handled
+      ccc_uh_r    <= 1'b0;              // masked unhandled: it is 1 for the CCC
+    end else if (next_int_ccc) begin    // only if not handled
       if (work_datab[7])
         ccc_supp  <= 2'b10;             // only notify on match
       else if (work_datab[7:3] != `CCC_ENTHDR_MSK) // exception is HDR
         ccc_supp  <= 2'b01;             // notify now and also push CCC to RX
+      ccc_uh_r    <= 1'b1;
     end else if (ccc_supp[0])
       ccc_supp[0] <= 1'b0;              // pulsed once
-    else if (ccc_handling | ~ccc_uh_mask)
+    else if (ccc_handling | ~ccc_uh_r)
       ccc_supp    <= 2'b00;             // is handled
     else if (next_dc_ccc)
       ccc_supp[0] <= 1'b1;              // signal now (pulse)
-    else if (~|in_ccc[`CF_DIRECT:0] & ccc_supp[1])
+    else if (~|in_ccc[`CF_DIRECT:0] & (ccc_supp[1] | ccc_uh_r)) begin
       ccc_supp[1] <= 1'b0;              // no longer possibly Direct
+      ccc_uh_r    <= 1'b0;              // end of CCC, so clear
+    end
   assign int_ccc = ccc_supp[0] & ~vgpio_ccc;
   always @ (posedge clk_SCL_n or negedge ccc_reset_n) 
     if (!ccc_reset_n)

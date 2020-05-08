@@ -52,7 +52,7 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_auton_wrap_full.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11.a.0.1
+//  Tag             : 1.1.11
 //  Date            : $Date: Thu Oct 24 08:54:29 2019 $
 //  Revision        : $Revision: 1.45 $
 //
@@ -206,6 +206,9 @@ module i3c_auton_wrap_full #(
   input         [7:0] cf_IdBcr,         // BCR of DAA if not const
   input         [7:0] cf_IdDcr,         // DCR of DAA if not const
   input        [14:0] cf_IdVid,         // Vendor ID if not const
+    // next one should only be set/cleared when bus not busy unless done in SCL clock domain
+    // strap 0 if not needed.
+  input               cf_SlvNack,       // Set to 1 to cause NACK of our address (R or W)
     // below is only used if EV_BAMATCH_b set in param. May change dynamically 
   input         [7:0] cf_BAMatch,
   // Now special states from SCL domain raw - these can be synchronized
@@ -423,7 +426,7 @@ module i3c_auton_wrap_full #(
                           RSTACT_CONFIG[`RSTA_TIM_PER_b] : 8'd0, 
                         RSTACT_CONFIG[`RSTA_TIM_SYS_b], 
                         RSTACT_CONFIG[`RSTA_TIM_PER_b]}),
-    .cf_SlvNack       (1'b0),
+    .cf_SlvNack       (cf_SlvNack),
     .cf_SdrOK         (1'b1),           // if 0, i2c only
     .cf_DdrOK         (1'b0), 
     .cf_TspOK         (1'b0), 

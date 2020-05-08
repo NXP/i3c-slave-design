@@ -52,7 +52,7 @@
 //  ----------------------------------------------------------------------------
 //  File            : i3c_data_frombus.v
 //  Organisation    : MCO
-//  Tag             : 1.1.11.a.0.1
+//  Tag             : 1.1.11
 //  Date            : $Date: Thu Nov 14 12:28:26 2019 $
 //  Revision        : $Revision: 1.62 $
 //
@@ -180,6 +180,7 @@ module i3c_data_frombus #(
   reg           [1:0] next_widx, next_ridx; // case to expand gray code
   reg           [7:0] fbdata[0:1];      // actual FIFO
   wire          [8:0] opt_holding;
+  wire                holding_data;
 
   // now sync SCL write index and SCL write index.
   // gray codes, so independent
@@ -218,10 +219,12 @@ module i3c_data_frombus #(
         holding[8]   <= 1'b0;
 
     assign opt_holding = holding;
+    assign holding_data    = holding[8];
     assign avail_fb_empty  = fb_empty & ~holding[8];
   end else begin
     assign opt_holding = {~fb_empty, fbdata[^fb_ridx]};
     assign avail_fb_empty  = fb_empty;
+    assign holding_data    = 1'b0;
   end
 
 
@@ -229,9 +232,9 @@ module i3c_data_frombus #(
   assign int_rx          = &rx_trig ? (~fb_empty & ~fb_1in) : notify_fb_ready;
   assign fb_empty        = fb_widx==fb_ridx;
   assign fb_1in          = ^(fb_widx ^ fb_ridx); // not full, but 1 in
-  assign avail_byte_cnt  = fb_empty ? (opt_holding[8] ? 5'd1 : 5'd0) :
-                           fb_1in   ? (opt_holding[8] ? 5'd2 : 5'd1) : // 1 in the FIFO
-                                       opt_holding[8] ? 5'd3 : 5'd2;   // 2 in the FIFO
+  assign avail_byte_cnt  = fb_empty ? (holding_data ? 5'd1 : 5'd0) :
+                           fb_1in   ? (holding_data ? 5'd2 : 5'd1) : // 1 in the FIFO
+                                       holding_data ? 5'd3 : 5'd2;   // 2 in the FIFO
   assign notify_fb_data  = opt_holding[7:0];
 
   // gray code

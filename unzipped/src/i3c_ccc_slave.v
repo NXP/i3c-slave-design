@@ -53,9 +53,9 @@
 //  File            : i3c_ccc_slave.v
 //  Organisation    : MCO
 //  Tag             : 1.0.2
-//  Tag             : 1.1.11.a.0.1
-//  Date            : $Date: Wed Dec 11 18:20:40 2019 $
-//  Revision        : $Revision: 1.63.1.1 $
+//  Tag             : 1.1.11
+//  Date            : $Date: Thu Nov 14 18:30:38 2019 $
+//  Revision        : $Revision: 1.64 $
 //
 //  IP Name         : i3c_ccc_slave
 //  Description     : MIPI I3C Slave CCC handling (req and optional by param)
@@ -379,7 +379,7 @@ module i3c_ccc_slave #(
     8'h8D:             ccc_init = CHAN_GPID;   
     8'h8E:             ccc_init = CHAN_GBCR;   
     8'h8F:             ccc_init = CHAN_GDCR;   
-    8'h95:             ccc_init = CHAN_GHDR;   
+    8'h95:             ccc_init = CHAN_GHDR; // is now GETCAPS in v1.1
     /* we do not handle these in HW - could in the future perhaps
     8'h0B:             ccc_init = CHAN_ENTTM;
     8'h08:             ccc_init = CHAN_DEFSLV;
@@ -398,15 +398,19 @@ module i3c_ccc_slave #(
 
   // the ccc_mask is used to stop unhandled CCCs from being send to
   // app
+  generate if (ID_AS_REGS[`IDREGS_CCCMSK_b]) begin : ccc_unhandled
   wire base_msk   = cf_CccMask[0] & (idata_byte[6:0]<=8'h1F);
   wire basebx_msk = cf_CccMask[1] & (idata_byte>=8'h20) & (idata_byte<=8'h48);
-  wire basedx_msk = cf_CccMask[2] & (idata_byte>=8'h90) & (idata_byte<=8'hBF);
+    wire basedx_msk = cf_CccMask[2] & (idata_byte>=8'hA0) & (idata_byte<=8'hBF);
   wire metb_msk   = cf_CccMask[3] & (idata_byte>=8'h49) & (idata_byte<=8'h64);
   wire metd_msk   = cf_CccMask[4] & (idata_byte>=8'hC0) & (idata_byte<=8'hE3);
   wire vendb_msk  = cf_CccMask[5] & (idata_byte>=8'h65) & (idata_byte<=8'h7F);
-  wire vendd_msk  = cf_CccMask[6] & (idata_byte>=8'hE4) & (idata_byte<=8'hFE);
+    wire vendd_msk  = cf_CccMask[6] & (idata_byte>=8'hE4) & (idata_byte<=8'hFF);
   assign ccc_uh_mask = base_msk | basebx_msk | basedx_msk | 
                        metb_msk | metd_msk | vendb_msk | vendd_msk;
+  end else begin
+    assign ccc_uh_mask = 1'b1;
+  end endgenerate
   // load is highest bit + 1. Only used for direct
   assign load = ({7{ccc_handle_r==CHAN_DAA}}    & LOAD_DAA) |
                 ({7{ccc_handle_r==CHAN_STATUS}} & LOAD_STATUS) |
@@ -481,8 +485,23 @@ module i3c_ccc_slave #(
   wire        get_bcr    = (ccc_handle_r==CHAN_GBCR) & dcr_bcr[8+use_cnt[3:0]];
   wire        get_dcr    = (ccc_handle_r==CHAN_GDCR) & dcr_bcr[use_cnt[3:0]];
   wire        get_pid    = (ccc_handle_r==CHAN_GPID) & prov_id[use_cnt[5:0]]; // Provisional ID part
-  wire        get_hdr    = (ccc_handle_r==CHAN_GHDR) & (use_cnt[3:0]==4'd1) & dcr_bcr[8+5+1] &
+  wire        get_caps;  // is GET_HDR if v1.0
+  generate if (ENA_CCC_HANDLING[`ENCCC_V11MIN]) begin : def_get_caps
+    // TODO: need to add defining byte option
+    wire [7:0]cap1       = {7'd0, dcr_bcr[8+5+1] & ENA_HDR[`HDR_DDR_b]}; // HDR - DDR if enabled
+                          // flow ctrl  group  version
+    wire [7:0]cap2       = {1'b0, 1'b0, 2'b00, 4'd1}; // v1.1
+                         // DB below is defining byte suppor for status and getcaps
+                         //pnd_rd BT crc32 DB stat DB caps DTDT ibi supp  ML
+    wire [7:0]cap3       = {1'b0, 1'b0,    1'b0,   1'b0,   1'b0,    1'b0, 1'b0};
+    wire [7:0]cap4       = {1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0};
+    wire[32:0]caps       = {cap4, cap3, cap2, cap1, 1'b0};
+    assign    get_caps   = (ccc_handle_r==CHAN_GHDR) & caps[use_cnt[5:0]];
+  end else begin
+    wire      get_hdr    = (use_cnt[3:0]==4'd1) & dcr_bcr[8+5+1] &
                               ENA_HDR[`HDR_DDR_b]; // only DDR for now
+    assign    get_caps   = (ccc_handle_r==CHAN_GHDR) & get_hdr;
+  end endgenerate
   wire        get_mxwrlen= (ccc_handle_r==CHAN_GMXWL)& max_wrlen[use_cnt[3:0]];
   wire        get_mxrdlen= (ccc_handle_r==CHAN_GMXRL)& max_rdlen[use_cnt[3:0]];
   wire        get_mxds   = (ccc_handle_r==CHAN_GMXDS)& max_ds[use_cnt[(|MAX_DS_RDTURN?5:3):0]];
@@ -494,7 +513,7 @@ module i3c_ccc_slave #(
   wire        get_rstact = (ccc_handle_r==CHAN_RSTACT) & slvr_val[use_cnt[3:0]];
   assign ccc_tb_data     = ccc_tb_now &
                              (get_status | get_bcr | get_dcr | get_pid | get_xtime |
-                              get_hdr | get_mxwrlen | get_mxrdlen | get_mxds | 
+                              get_caps | get_mxwrlen | get_mxrdlen | get_mxds | 
                               get_mstacc | get_rstact);
   assign ccc_tb_continue = |use_cnt[5:1];
 
